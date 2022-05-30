@@ -15,4 +15,3 @@ def driver(chrome_options):
     driver.get(url)
     yield driver
     driver.quit()
-

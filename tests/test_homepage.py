@@ -1,21 +1,23 @@
-import pytest
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
+from src.page_object.pages.home_page import Homepage
+
 
 def test_nav_to_home_page(driver):
-    driver.find_element(By.ID, 'add').click()
+    homepage = Homepage(driver)
+    homepage.nav_to_add_computer()
     driver.find_element(By.CSS_SELECTOR, 'a.fill').click()
-    home_page_label = driver.find_element(By.CSS_SELECTOR, 'section[id="main"] h1').text
-    assert home_page_label == '574 computers found'
+    assert homepage.get_label_amount_of_computers_text() == '574 computers found'
 
 def test_add_new_computer(driver):
+    homepage = Homepage(driver)
     new_computer_data = {
         'computer_name': 'New Computer',
         'introduced': '2022-05-29',
         'discontinued': '2022-05-30'
     }
-    driver.find_element(By.ID, 'add').click()
+    homepage.nav_to_add_computer()
     input_name = driver.find_element(By.ID, 'name')
     input_name.click()
     input_name.send_keys(new_computer_data['computer_name'])
@@ -30,35 +32,27 @@ def test_add_new_computer(driver):
     driver.find_element(By.CSS_SELECTOR, 'option[value="1"]').click()
     driver.find_element(By.CSS_SELECTOR, 'input[type="submit"]').click()
     driver.implicitly_wait(3)
-    alert_new_computer = driver.find_element(By.CSS_SELECTOR, 'div.alert-message strong')
-    assert alert_new_computer.text == 'Done !'
+    assert homepage.get_new_computer_alert_text() == 'Done !'
 
 def test_filter_computers_by_name(driver):
+    homepage = Homepage(driver)
     input = 'ARRA'
-    input_search = driver.find_element(By.ID, 'searchbox')
-    input_search.click()
-    input_search.send_keys(input)
-    driver.find_element(By.ID, 'searchsubmit').click()
-    driver.implicitly_wait(3)
+    homepage.filter_computers_by_name(input)
     found_name = driver.find_element(By.PARTIAL_LINK_TEXT, input).text
     assert found_name == input
 
 def test_search_unexisting_computer(driver):
+    homepage = Homepage(driver)
     input = 'My Computer'
-    input_search = driver.find_element(By.ID, 'searchbox')
-    input_search.click()
-    input_search.send_keys(input)
-    driver.find_element(By.ID, 'searchsubmit').click()
-    driver.implicitly_wait(3)
-    label_nothing_to_display = driver.find_element(By.CSS_SELECTOR, 'div.well em').text
-    assert label_nothing_to_display == 'Nothing to display'
+    homepage.filter_computers_by_name(input)
+    assert homepage.get_unexisting_computer_label_text() == 'Nothing to display'
 
 def test_cancel_the_form(driver):
+    homepage = Homepage(driver)
     driver.find_element(By.ID, 'add').click()
     driver.find_element(By.PARTIAL_LINK_TEXT, 'Cancel').click()
     driver.implicitly_wait(3)
-    home_page_label = driver.find_element(By.CSS_SELECTOR, 'section[id="main"] h1').text
-    assert home_page_label == '574 computers found'
+    assert homepage.get_label_amount_of_computers_text() == '574 computers found'
 
 def test_fill_the_form_empty_company_name(driver):
     driver.find_element(By.ID, 'add').click()
@@ -88,13 +82,7 @@ def test_fill_the_form_incorrect_date_format_introduced(driver):
         assert label.text == "Failed to decode date : java.time.format.DateTimeParseException: Text '" + new_computer_data['introduced'] +  "' could not be parsed at index 0"
 
 def test_computer_list_pagination(driver):
-    first_page_first_element = 'ACE'
-    second_page_first_element = 'ASCI White'
-    button_nav_next = driver.find_element(By.PARTIAL_LINK_TEXT, 'Next →')
-    button_nav_next.click()
-    WebDriverWait(driver, 5).until(ec.presence_of_element_located((By.PARTIAL_LINK_TEXT, second_page_first_element)))
-    button_nav_prev = driver.find_element(By.PARTIAL_LINK_TEXT, '← Previous')
-    button_nav_prev.click()
-    WebDriverWait(driver, 5).until(ec.presence_of_element_located((By.PARTIAL_LINK_TEXT, first_page_first_element)))
-    li_previous = driver.find_element(By.ID, 'pagination').find_elements(By.TAG_NAME, 'li')[0]
-    assert li_previous.get_attribute('class') == 'prev disabled'
+    homepage = Homepage(driver)
+    homepage.nav_to_next_pagination()
+    homepage.nav_to_prev_pagination()
+    assert homepage.get_prev_button_class() == 'prev disabled'
