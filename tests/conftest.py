@@ -4,7 +4,7 @@ from selenium import webdriver
 @pytest.fixture()
 def chrome_options():
     options = webdriver.ChromeOptions()
-    #options.add_argument('--headless')
+    options.add_argument('--headless')
     options.add_argument('--start-maximized')
     return options
 
